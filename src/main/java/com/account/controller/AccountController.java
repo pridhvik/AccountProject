@@ -21,6 +21,7 @@ import com.account.config.JwtService;
 import com.account.dto.AccountDto;
 import com.account.dto.LoginDto;
 import com.account.dto.LoginResponseDto;
+import com.account.dto.TransactionDto;
 import com.account.entity.Account;
 import com.account.service.AccountService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,21 +95,9 @@ public class AccountController {
 		return new ResponseEntity<String>(service.toggleStatus(id), HttpStatus.OK);
 	}
 
-	@GetMapping("external-user")
-	public void externalUsers() throws JsonMappingException, JsonProcessingException {
-		RestTemplate rt = new RestTemplate();
-
-		List<Object> jsonResp = rt.getForObject("https://jsonplaceholder.typicode.com/users", List.class);
-		System.out.println(jsonResp);
-		for (Object obj : jsonResp) {
-			Map<String, Object> user = (Map) obj;
-			if (user.get("id") == (Object) 2 || user.get("id") == (Object) 6) {
-
-				Map<String, Object> add = (Map) user.get("address");
-				Map<String, Object> geo = (Map) add.get("geo");
-				System.out.println(geo.get("lat"));
-			}
-		}
+	@PutMapping("transfer")
+	public ResponseEntity<String> transferFunds(@RequestBody TransactionDto transaction) {
+		return new ResponseEntity<String>(service.transferAmount(transaction), HttpStatus.OK);
 	}
 
 }
