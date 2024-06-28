@@ -2,8 +2,11 @@ package com.account.service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,11 +31,14 @@ public class AccountServiceImpl implements AccountService {
 
 	private AuthenticationManager authenticationManager;
 
+	private KafkaTemplate<String, Object> template;
+
 	public AccountServiceImpl(AccountRepository repo, PasswordEncoder passwordEncoder,
-			AuthenticationManager authenticationManager) {
+			AuthenticationManager authenticationManager, KafkaTemplate<String, Object> template) {
 		this.repo = repo;
 		this.passwordEncoder = passwordEncoder;
 		this.authenticationManager = authenticationManager;
+		this.template = template;
 	}
 
 	@Override
@@ -112,14 +118,31 @@ public class AccountServiceImpl implements AccountService {
 	@Override
 	public String transferAmount(TransactionDto transaction) {
 		return repo.findById(transaction.getAccountId()).map(acc -> {
-			if (acc.getBalance() < transaction.getBalance()) {
+			if (acc.getBalance() < transaction.getTransactionAmount()) {
 				throw new InsufficientFundsException(ErrorMessages.INSUFFICIENT_FUNDS);
 			}
-			acc.setBalance(acc.getBalance() - transaction.getBalance());
+			acc.setBalance(acc.getBalance() - transaction.getTransactionAmount());
 			repo.save(acc);
+			sendTransactionEvent(transaction);
 			return "Transaction successful";
 		}).orElseThrow(
 				() -> new AccountNotFoundException(ErrorMessages.ACCOUNT_NOT_FOUND + transaction.getAccountId()));
 	}
 
+	public void sendTransactionEvent(TransactionDto transaction) {
+		try {
+			CompletableFuture<SendResult<String, Object>> future = template.send("account-transactions", transaction);
+			future.whenComplete((result, ex) -> {
+				if (ex == null) {
+					System.out.println("Sent message=[" + transaction.toString() + "] with offset=["
+							+ result.getRecordMetadata().offset() + "]");
+				} else {
+					System.out.println(
+							"Unable to send message=[" + transaction.toString() + "] due to : " + ex.getMessage());
+				}
+			});
+		} catch (Exception ex) {
+			System.out.println("Error: " + ex.getMessage());
+		}
+	}
 }
