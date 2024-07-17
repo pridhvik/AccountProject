@@ -70,6 +70,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(value = Exception.class)
 	public ResponseEntity<ErrorResponse> handleCommonException(Exception ex) {
 		System.out.println("==========Handling Common Exception==============");
+		ex.printStackTrace();
 
 		ErrorResponse error = null;
 

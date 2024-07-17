@@ -1,7 +1,6 @@
 package com.account.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,17 +14,15 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
 
 import com.account.config.JwtService;
+import com.account.config.JwtServiceImpl;
 import com.account.dto.AccountDto;
 import com.account.dto.LoginDto;
 import com.account.dto.LoginResponseDto;
 import com.account.dto.TransactionDto;
 import com.account.entity.Account;
 import com.account.service.AccountService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 import jakarta.validation.Valid;
 
@@ -33,11 +30,11 @@ import jakarta.validation.Valid;
 @RequestMapping("account")
 public class AccountController {
 
-	private JwtService jwtService;
+	private JwtServiceImpl jwtService;
 
 	private AccountService service;
 
-	public AccountController(JwtService jwtService, AccountService service) {
+	public AccountController(JwtServiceImpl jwtService, AccountService service) {
 		this.jwtService = jwtService;
 		this.service = service;
 	}
@@ -51,7 +48,7 @@ public class AccountController {
 	public ResponseEntity<LoginResponseDto> login(@RequestBody LoginDto cred) {
 		Account authenticatedUser = service.loginAccount(cred);
 
-		String jwtToken = jwtService.generateToken(authenticatedUser);
+		String jwtToken = jwtService.buildToken(authenticatedUser);
 
 		LoginResponseDto loginResp = new LoginResponseDto(jwtToken, jwtService.getExpirationTime());
 		return ResponseEntity.status(HttpStatus.OK).body(loginResp);
