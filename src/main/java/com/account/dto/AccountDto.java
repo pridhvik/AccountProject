@@ -2,7 +2,7 @@ package com.account.dto;
 
 import java.time.LocalDate;
 
-import io.micrometer.common.lang.Nullable;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

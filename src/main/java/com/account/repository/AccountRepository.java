@@ -12,4 +12,6 @@ import com.account.entity.Account;
 public interface AccountRepository extends JpaRepository<Account, Serializable> {
 
 	public Optional<Account> findByEmail(String email);
+
+	public Optional<Account> findByAccountNumber(String accountNumber);
 }

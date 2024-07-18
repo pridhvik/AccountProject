@@ -1,5 +1,6 @@
 package com.account.dto;
 
+import jakarta.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,17 +9,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TransactionDto {
-	
-	private String description;
 
-	private String accountNumber;
+	@Nullable
+	private String transactionId;
+
+	private String description;
 
 	private Boolean isCredited;
 
 	private Double transactionAmount;
 
-	private Boolean isActive;
+	private String accountNumber;
 
-	private Integer accountId;
+	@Nullable
+	private String userName;
 
 }

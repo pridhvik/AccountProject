@@ -117,16 +117,19 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public String transferAmount(TransactionDto transaction) {
-		return repo.findById(transaction.getAccountId()).map(acc -> {
+		return repo.findByAccountNumber(transaction.getAccountNumber()).map(acc -> {
 			if (acc.getBalance() < transaction.getTransactionAmount()) {
 				throw new InsufficientFundsException(ErrorMessages.INSUFFICIENT_FUNDS);
 			}
 			acc.setBalance(acc.getBalance() - transaction.getTransactionAmount());
 			repo.save(acc);
+
+			transaction.setTransactionId(UUID.randomUUID().toString());
+			transaction.setUserName(acc.getUsername());
 			sendTransactionEvent(transaction);
 			return "Transaction successful";
 		}).orElseThrow(
-				() -> new AccountNotFoundException(ErrorMessages.ACCOUNT_NOT_FOUND + transaction.getAccountId()));
+				() -> new AccountNotFoundException(ErrorMessages.ACCOUNT_NOT_FOUND + transaction.getAccountNumber()));
 	}
 
 	public void sendTransactionEvent(TransactionDto transaction) {
